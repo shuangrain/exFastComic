@@ -16,53 +16,61 @@
     }
 
     function Run() {
-        //remove tool
-        $('.rightToolBar').remove();
+        var currentIndex = DM5_FLOAT_INDEX;
+        var isLock = false;
 
-        var pageDom = $($('div.pageBar')[0]).find('a');
-
-        var currentIndex = parseInt($('.arrow_down').text().replace('第', '').replace('页', '')) - 1;
-
-        var arrUrl = [];
-        var arrImage = [];
-
-        $.each(pageDom, function(index, item) {
-            var url = $(item).attr('href') + 'chapterfun.ashx?cid=';
-            var value = url.substring(0, url.indexOf('-'));
-            value = value.substring(value.indexOf('/m') + 2);
-            arrUrl.push({
-                PageNumber: index + 1,
-                Url: url + value + '&page=' + parseInt(index + 1)
+        var arrUrl = function() {
+            var tmpArr = [];
+            var pageDom = $($('div.pageBar')[0]).find('a');
+            $.each(pageDom, function(index, item) {
+                var href = $(item).attr('href');
+                var api = 'chapterfun.ashx?cid=';
+                var value = function() {
+                    var tmp = href.substring(0, href.indexOf('-'));
+                    tmp = tmp.substring(tmp.indexOf('/m') + 2);
+                    return tmp;
+                }();
+                tmpArr.push(href + api + value + '&page=' + parseInt(index + 1));
             });
+
+            return tmpArr;
+        }();
+
+        //處理第一張圖
+        (function() {
+            $('div#cp_img').html('');
+            loadImage(arrUrl[currentIndex - 1]);
+        })();
+
+        $(window).on('scroll', function() {
+            var nowVal = $(window).scrollTop() + 1500;
+            var isNeedLoadNext = nowVal > $('div#cp_img').height();
+
+            if (isNeedLoadNext &&
+                currentIndex < arrUrl.length &&
+                !isLock) {
+                loadImage(arrUrl[currentIndex]);
+                currentIndex++;
+            }
         });
 
 
-        //get image url
-        $.each(arrUrl, function(index, item) {
+        function loadImage(apiUrl) {
+            isLock = true;
             $.ajax({
-                url: item.Url,
+                url: apiUrl,
                 type: "GET",
                 success: function(result) {
                     var url = eval(result)[0];
-                    arrImage.push({
-                        PageNumber: item.PageNumber,
-                        Item: '<br/><img src="' + url + '" style="cursor: pointer; width: auto; height: auto;" id="cp_image"><div style="color: red;">' + item.PageNumber + '</div><br/>'
-                    });
-
-                    if (index == arrUrl.length - 1) {
-                        arrImage.sort(function(a, b) {
-                            return parseInt(a.PageNumber) - parseInt(b.PageNumber);
-                        });
-
-                        $.each(arrImage, function(index, item) {
-                            if (currentIndex < item.PageNumber - 1) {
-                                $('div#cp_img').append(item.Item);
-                            }
-                        });
-                    }
-
+                    var html = '<br/><img src="' + url + '"><br/>';
+                    $('img#cp_image').remove();
+                    $('div#cp_img').append(html);
+                    isLock = false;
                 }
             });
-        });
+        }
+
+        //remove tool
+        $('.topTool, .rightToolBar, .viewTool').remove();
     }
 })();
