@@ -1,3 +1,3 @@
-# ComicInfiniteScroll
+# exFastComic
 
-請搭配油猴使用
+搭配油猴食用
