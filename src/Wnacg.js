@@ -52,7 +52,7 @@
         var isNeedLoadNext = nowVal > imgVal;
 
         if (isNeedLoadNext &&
-            currentIndex < arrUrl.length &&
+            currentIndex <= arrUrl.length &&
             !isLock) {
             loadImage(arrUrl[currentIndex]);
         }
